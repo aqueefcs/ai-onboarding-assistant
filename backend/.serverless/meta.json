@@ -1,0 +1,1620 @@
+{
+  "D:\\ai-onboarding-assistant\\backend\\serverless.yml": {
+    "versionFramework": "4.31.2",
+    "servicePath": "D:\\ai-onboarding-assistant\\backend\\serverless.yml",
+    "serviceConfigFileName": "serverless.yml",
+    "service": {
+      "service": "ai-onboarding-assistant",
+      "useDotenv": true,
+      "provider": {
+        "name": "aws",
+        "runtime": "nodejs20.x",
+        "region": "ap-south-1",
+        "memorySize": 512,
+        "timeout": 29,
+        "environment": {
+          "SUPABASE_URL": "https://zclppbljpcdkeazyhnyw.supabase.co",
+          "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjbHBwYmxqcGNka2Vhenlobnl3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDEzNDE2NCwiZXhwIjoyMDg1NzEwMTY0fQ.-P-xnvNnIg9bBBOQR0LyWvLy2mOAJpPEDszJ3L6AUeU",
+          "GEMINI_API_KEY": "<REDACTED>",
+          "SQS_QUEUE_URL": {
+            "Ref": "IngestionQueue"
+          }
+        },
+        "iam": {
+          "role": {
+            "statements": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "sqs:SendMessage"
+                ],
+                "Resource": [
+                  {
+                    "Fn::GetAtt": [
+                      "IngestionQueue",
+                      "Arn"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "stage": "dev",
+        "versionFunctions": true,
+        "compiledCloudFormationTemplate": {
+          "AWSTemplateFormatVersion": "2010-09-09",
+          "Description": "The AWS CloudFormation template for this Serverless application",
+          "Resources": {
+            "ApiLogGroup": {
+              "Type": "AWS::Logs::LogGroup",
+              "Properties": {
+                "LogGroupName": "/aws/lambda/ai-onboarding-assistant-dev-api"
+              }
+            },
+            "WorkerLogGroup": {
+              "Type": "AWS::Logs::LogGroup",
+              "Properties": {
+                "LogGroupName": "/aws/lambda/ai-onboarding-assistant-dev-worker"
+              }
+            },
+            "IamRoleLambdaExecution": {
+              "Type": "AWS::IAM::Role",
+              "Properties": {
+                "AssumeRolePolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Principal": {
+                        "Service": [
+                          "lambda.amazonaws.com"
+                        ]
+                      },
+                      "Action": [
+                        "sts:AssumeRole"
+                      ]
+                    }
+                  ]
+                },
+                "Policies": [
+                  {
+                    "PolicyName": {
+                      "Fn::Join": [
+                        "-",
+                        [
+                          "ai-onboarding-assistant",
+                          "dev",
+                          "lambda"
+                        ]
+                      ]
+                    },
+                    "PolicyDocument": {
+                      "Version": "2012-10-17",
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:CreateLogStream",
+                            "logs:CreateLogGroup",
+                            "logs:TagResource"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ai-onboarding-assistant-dev*:*"
+                            }
+                          ]
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:PutLogEvents"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ai-onboarding-assistant-dev*:*:*"
+                            }
+                          ]
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "sqs:SendMessage"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::GetAtt": [
+                                "IngestionQueue",
+                                "Arn"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "sqs:ReceiveMessage",
+                            "sqs:DeleteMessage",
+                            "sqs:GetQueueAttributes"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::GetAtt": [
+                                "IngestionQueue",
+                                "Arn"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "Path": "/",
+                "RoleName": {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      "ai-onboarding-assistant",
+                      "dev",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      "lambdaRole"
+                    ]
+                  ]
+                }
+              }
+            },
+            "ApiLambdaFunction": {
+              "Type": "AWS::Lambda::Function",
+              "Properties": {
+                "Code": {
+                  "S3Bucket": "serverless-framework-deployments-ap-south-1-ca1d99ac-d8e6",
+                  "S3Key": "serverless/ai-onboarding-assistant/dev/1770231656471-2026-02-04T19:00:56.471Z/api.zip"
+                },
+                "Handler": "dist/apps/api/main.handler",
+                "Runtime": "nodejs20.x",
+                "FunctionName": "ai-onboarding-assistant-dev-api",
+                "MemorySize": 512,
+                "Timeout": 29,
+                "Environment": {
+                  "Variables": {
+                    "SUPABASE_URL": "https://zclppbljpcdkeazyhnyw.supabase.co",
+                    "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjbHBwYmxqcGNka2Vhenlobnl3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDEzNDE2NCwiZXhwIjoyMDg1NzEwMTY0fQ.-P-xnvNnIg9bBBOQR0LyWvLy2mOAJpPEDszJ3L6AUeU",
+                    "GEMINI_API_KEY": "<REDACTED>",
+                    "SQS_QUEUE_URL": {
+                      "Ref": "IngestionQueue"
+                    }
+                  }
+                },
+                "Role": {
+                  "Fn::GetAtt": [
+                    "IamRoleLambdaExecution",
+                    "Arn"
+                  ]
+                }
+              },
+              "DependsOn": [
+                "ApiLogGroup"
+              ]
+            },
+            "WorkerLambdaFunction": {
+              "Type": "AWS::Lambda::Function",
+              "Properties": {
+                "Code": {
+                  "S3Bucket": "serverless-framework-deployments-ap-south-1-ca1d99ac-d8e6",
+                  "S3Key": "serverless/ai-onboarding-assistant/dev/1770231656471-2026-02-04T19:00:56.471Z/worker.zip"
+                },
+                "Handler": "dist/apps/worker/main.handler",
+                "Runtime": "nodejs20.x",
+                "FunctionName": "ai-onboarding-assistant-dev-worker",
+                "MemorySize": 512,
+                "Timeout": 300,
+                "Environment": {
+                  "Variables": {
+                    "SUPABASE_URL": "https://zclppbljpcdkeazyhnyw.supabase.co",
+                    "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjbHBwYmxqcGNka2Vhenlobnl3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDEzNDE2NCwiZXhwIjoyMDg1NzEwMTY0fQ.-P-xnvNnIg9bBBOQR0LyWvLy2mOAJpPEDszJ3L6AUeU",
+                    "GEMINI_API_KEY": "<REDACTED>",
+                    "SQS_QUEUE_URL": {
+                      "Ref": "IngestionQueue"
+                    }
+                  }
+                },
+                "Role": {
+                  "Fn::GetAtt": [
+                    "IamRoleLambdaExecution",
+                    "Arn"
+                  ]
+                }
+              },
+              "DependsOn": [
+                "WorkerLogGroup"
+              ]
+            },
+            "ApiLambdaVersionDPIr9TLmf9XziGHIZ1hK2MdmgPV7wh3cHhejCe0CU": {
+              "Type": "AWS::Lambda::Version",
+              "DeletionPolicy": "Retain",
+              "Properties": {
+                "FunctionName": {
+                  "Ref": "ApiLambdaFunction"
+                },
+                "CodeSha256": "/qgvdd6/IjpaLqqLcMDTIUPbthPD7xFUb6XBBqltkVA="
+              }
+            },
+            "WorkerLambdaVersionubJD4oGKTt3r5916hCxenmMqfclPgsg0Wlk8ZohZZ50": {
+              "Type": "AWS::Lambda::Version",
+              "DeletionPolicy": "Retain",
+              "Properties": {
+                "FunctionName": {
+                  "Ref": "WorkerLambdaFunction"
+                },
+                "CodeSha256": "FWa8ZR3TEyhxmIcMYX+oTuOCgceCep7yQS0nNd6SX3o="
+              }
+            },
+            "ApiGatewayRestApi": {
+              "Type": "AWS::ApiGateway::RestApi",
+              "Properties": {
+                "Name": "dev-ai-onboarding-assistant",
+                "EndpointConfiguration": {
+                  "Types": [
+                    "EDGE"
+                  ]
+                },
+                "Policy": ""
+              }
+            },
+            "ApiGatewayResourceProxyVar": {
+              "Type": "AWS::ApiGateway::Resource",
+              "Properties": {
+                "ParentId": {
+                  "Fn::GetAtt": [
+                    "ApiGatewayRestApi",
+                    "RootResourceId"
+                  ]
+                },
+                "PathPart": "{proxy+}",
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                }
+              }
+            },
+            "ApiGatewayMethodAny": {
+              "Type": "AWS::ApiGateway::Method",
+              "Properties": {
+                "HttpMethod": "ANY",
+                "RequestParameters": {},
+                "ResourceId": {
+                  "Fn::GetAtt": [
+                    "ApiGatewayRestApi",
+                    "RootResourceId"
+                  ]
+                },
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                },
+                "ApiKeyRequired": "<REDACTED>",
+                "AuthorizationType": "NONE",
+                "Integration": {
+                  "IntegrationHttpMethod": "POST",
+                  "Type": "AWS_PROXY",
+                  "Uri": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition"
+                        },
+                        ":apigateway:",
+                        {
+                          "Ref": "AWS::Region"
+                        },
+                        ":lambda:path/2015-03-31/functions/",
+                        {
+                          "Fn::GetAtt": [
+                            "ApiLambdaFunction",
+                            "Arn"
+                          ]
+                        },
+                        "/invocations"
+                      ]
+                    ]
+                  }
+                },
+                "MethodResponses": []
+              },
+              "DependsOn": [
+                "ApiLambdaPermissionApiGateway"
+              ]
+            },
+            "ApiGatewayMethodProxyVarAny": {
+              "Type": "AWS::ApiGateway::Method",
+              "Properties": {
+                "HttpMethod": "ANY",
+                "RequestParameters": {},
+                "ResourceId": {
+                  "Ref": "ApiGatewayResourceProxyVar"
+                },
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                },
+                "ApiKeyRequired": "<REDACTED>",
+                "AuthorizationType": "NONE",
+                "Integration": {
+                  "IntegrationHttpMethod": "POST",
+                  "Type": "AWS_PROXY",
+                  "Uri": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition"
+                        },
+                        ":apigateway:",
+                        {
+                          "Ref": "AWS::Region"
+                        },
+                        ":lambda:path/2015-03-31/functions/",
+                        {
+                          "Fn::GetAtt": [
+                            "ApiLambdaFunction",
+                            "Arn"
+                          ]
+                        },
+                        "/invocations"
+                      ]
+                    ]
+                  }
+                },
+                "MethodResponses": []
+              },
+              "DependsOn": [
+                "ApiLambdaPermissionApiGateway"
+              ]
+            },
+            "ApiGatewayDeployment1770231628585": {
+              "Type": "AWS::ApiGateway::Deployment",
+              "Properties": {
+                "RestApiId": {
+                  "Ref": "ApiGatewayRestApi"
+                },
+                "StageName": "dev"
+              },
+              "DependsOn": [
+                "ApiGatewayMethodAny",
+                "ApiGatewayMethodProxyVarAny"
+              ]
+            },
+            "ApiLambdaPermissionApiGateway": {
+              "Type": "AWS::Lambda::Permission",
+              "Properties": {
+                "FunctionName": {
+                  "Fn::GetAtt": [
+                    "ApiLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "Action": "lambda:InvokeFunction",
+                "Principal": "apigateway.amazonaws.com",
+                "SourceArn": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":execute-api:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":",
+                      {
+                        "Ref": "AWS::AccountId"
+                      },
+                      ":",
+                      {
+                        "Ref": "ApiGatewayRestApi"
+                      },
+                      "/*/*"
+                    ]
+                  ]
+                }
+              }
+            },
+            "WorkerEventSourceMappingSQSIngestionQueue": {
+              "Type": "AWS::Lambda::EventSourceMapping",
+              "DependsOn": [
+                "IamRoleLambdaExecution"
+              ],
+              "Properties": {
+                "BatchSize": 1,
+                "EventSourceArn": {
+                  "Fn::GetAtt": [
+                    "IngestionQueue",
+                    "Arn"
+                  ]
+                },
+                "FunctionName": {
+                  "Fn::GetAtt": [
+                    "WorkerLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "Enabled": true
+              }
+            },
+            "IngestionQueue": {
+              "Type": "AWS::SQS::Queue",
+              "Properties": {
+                "QueueName": "repo-ingestion-queue",
+                "VisibilityTimeout": 300
+              }
+            }
+          },
+          "Outputs": {
+            "ServerlessDeploymentBucketName": {
+              "Value": "serverless-framework-deployments-ap-south-1-ca1d99ac-d8e6",
+              "Export": {
+                "Name": "sls-ai-onboarding-assistant-dev-ServerlessDeploymentBucketName"
+              }
+            },
+            "ApiLambdaFunctionQualifiedArn": {
+              "Description": "Current Lambda function version",
+              "Value": {
+                "Ref": "ApiLambdaVersionDPIr9TLmf9XziGHIZ1hK2MdmgPV7wh3cHhejCe0CU"
+              },
+              "Export": {
+                "Name": "sls-ai-onboarding-assistant-dev-ApiLambdaFunctionQualifiedArn"
+              }
+            },
+            "WorkerLambdaFunctionQualifiedArn": {
+              "Description": "Current Lambda function version",
+              "Value": {
+                "Ref": "WorkerLambdaVersionubJD4oGKTt3r5916hCxenmMqfclPgsg0Wlk8ZohZZ50"
+              },
+              "Export": {
+                "Name": "sls-ai-onboarding-assistant-dev-WorkerLambdaFunctionQualifiedArn"
+              }
+            },
+            "ServiceEndpoint": {
+              "Description": "URL of the service endpoint",
+              "Value": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "https://",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    ".execute-api.",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ".",
+                    {
+                      "Ref": "AWS::URLSuffix"
+                    },
+                    "/dev"
+                  ]
+                ]
+              },
+              "Export": {
+                "Name": "sls-ai-onboarding-assistant-dev-ServiceEndpoint"
+              }
+            }
+          }
+        },
+        "vpc": {}
+      },
+      "plugins": [
+        "serverless-offline"
+      ],
+      "package": {
+        "individually": true,
+        "exclude": [
+          "./**"
+        ],
+        "include": [
+          "node_modules/**",
+          "package.json"
+        ],
+        "artifactsS3KeyDirname": "serverless/ai-onboarding-assistant/dev/code-artifacts",
+        "deploymentBucket": "serverless-framework-deployments-ap-south-1-ca1d99ac-d8e6",
+        "artifactDirectoryName": "serverless/ai-onboarding-assistant/dev/1770231656471-2026-02-04T19:00:56.471Z"
+      },
+      "functions": {
+        "api": {
+          "handler": "dist/apps/api/main.handler",
+          "package": {
+            "include": [
+              "dist/apps/api/**"
+            ],
+            "artifact": ".serverless\\api.zip"
+          },
+          "events": [
+            {
+              "http": {
+                "path": "",
+                "method": "any",
+                "integration": "AWS_PROXY"
+              }
+            },
+            {
+              "http": {
+                "path": "{proxy+}",
+                "method": "any",
+                "integration": "AWS_PROXY"
+              }
+            }
+          ],
+          "name": "ai-onboarding-assistant-dev-api",
+          "memory": 512,
+          "timeout": 29,
+          "runtime": "nodejs20.x",
+          "vpc": {},
+          "versionLogicalId": "ApiLambdaVersionDPIr9TLmf9XziGHIZ1hK2MdmgPV7wh3cHhejCe0CU"
+        },
+        "worker": {
+          "handler": "dist/apps/worker/main.handler",
+          "timeout": 300,
+          "package": {
+            "include": [
+              "dist/apps/worker/**"
+            ],
+            "artifact": ".serverless\\worker.zip"
+          },
+          "events": [
+            {
+              "sqs": {
+                "arn": {
+                  "Fn::GetAtt": [
+                    "IngestionQueue",
+                    "Arn"
+                  ]
+                },
+                "batchSize": 1
+              }
+            }
+          ],
+          "name": "ai-onboarding-assistant-dev-worker",
+          "memory": 512,
+          "runtime": "nodejs20.x",
+          "vpc": {},
+          "versionLogicalId": "WorkerLambdaVersionubJD4oGKTt3r5916hCxenmMqfclPgsg0Wlk8ZohZZ50"
+        }
+      },
+      "resources": {
+        "Resources": {
+          "IngestionQueue": {
+            "Type": "AWS::SQS::Queue",
+            "Properties": {
+              "QueueName": "repo-ingestion-queue",
+              "VisibilityTimeout": 300
+            }
+          }
+        },
+        "Outputs": {}
+      }
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs20.x",
+      "region": "ap-south-1",
+      "memorySize": 512,
+      "timeout": 29,
+      "environment": {
+        "SUPABASE_URL": "https://zclppbljpcdkeazyhnyw.supabase.co",
+        "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjbHBwYmxqcGNka2Vhenlobnl3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDEzNDE2NCwiZXhwIjoyMDg1NzEwMTY0fQ.-P-xnvNnIg9bBBOQR0LyWvLy2mOAJpPEDszJ3L6AUeU",
+        "GEMINI_API_KEY": "<REDACTED>",
+        "SQS_QUEUE_URL": {
+          "Ref": "IngestionQueue"
+        }
+      },
+      "iam": {
+        "role": {
+          "statements": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "sqs:SendMessage"
+              ],
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "IngestionQueue",
+                    "Arn"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "stage": "dev",
+      "versionFunctions": true,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ApiLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/ai-onboarding-assistant-dev-api"
+            }
+          },
+          "WorkerLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/ai-onboarding-assistant-dev-worker"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "ai-onboarding-assistant",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup",
+                          "logs:TagResource"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ai-onboarding-assistant-dev*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ai-onboarding-assistant-dev*:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "sqs:SendMessage"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::GetAtt": [
+                              "IngestionQueue",
+                              "Arn"
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "sqs:ReceiveMessage",
+                          "sqs:DeleteMessage",
+                          "sqs:GetQueueAttributes"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::GetAtt": [
+                              "IngestionQueue",
+                              "Arn"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "ai-onboarding-assistant",
+                    "dev",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "ApiLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-ap-south-1-ca1d99ac-d8e6",
+                "S3Key": "serverless/ai-onboarding-assistant/dev/1770231656471-2026-02-04T19:00:56.471Z/api.zip"
+              },
+              "Handler": "dist/apps/api/main.handler",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "ai-onboarding-assistant-dev-api",
+              "MemorySize": 512,
+              "Timeout": 29,
+              "Environment": {
+                "Variables": {
+                  "SUPABASE_URL": "https://zclppbljpcdkeazyhnyw.supabase.co",
+                  "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjbHBwYmxqcGNka2Vhenlobnl3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDEzNDE2NCwiZXhwIjoyMDg1NzEwMTY0fQ.-P-xnvNnIg9bBBOQR0LyWvLy2mOAJpPEDszJ3L6AUeU",
+                  "GEMINI_API_KEY": "<REDACTED>",
+                  "SQS_QUEUE_URL": {
+                    "Ref": "IngestionQueue"
+                  }
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "ApiLogGroup"
+            ]
+          },
+          "WorkerLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-ap-south-1-ca1d99ac-d8e6",
+                "S3Key": "serverless/ai-onboarding-assistant/dev/1770231656471-2026-02-04T19:00:56.471Z/worker.zip"
+              },
+              "Handler": "dist/apps/worker/main.handler",
+              "Runtime": "nodejs20.x",
+              "FunctionName": "ai-onboarding-assistant-dev-worker",
+              "MemorySize": 512,
+              "Timeout": 300,
+              "Environment": {
+                "Variables": {
+                  "SUPABASE_URL": "https://zclppbljpcdkeazyhnyw.supabase.co",
+                  "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjbHBwYmxqcGNka2Vhenlobnl3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDEzNDE2NCwiZXhwIjoyMDg1NzEwMTY0fQ.-P-xnvNnIg9bBBOQR0LyWvLy2mOAJpPEDszJ3L6AUeU",
+                  "GEMINI_API_KEY": "<REDACTED>",
+                  "SQS_QUEUE_URL": {
+                    "Ref": "IngestionQueue"
+                  }
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "WorkerLogGroup"
+            ]
+          },
+          "ApiLambdaVersionDPIr9TLmf9XziGHIZ1hK2MdmgPV7wh3cHhejCe0CU": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ApiLambdaFunction"
+              },
+              "CodeSha256": "/qgvdd6/IjpaLqqLcMDTIUPbthPD7xFUb6XBBqltkVA="
+            }
+          },
+          "WorkerLambdaVersionubJD4oGKTt3r5916hCxenmMqfclPgsg0Wlk8ZohZZ50": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "WorkerLambdaFunction"
+              },
+              "CodeSha256": "FWa8ZR3TEyhxmIcMYX+oTuOCgceCep7yQS0nNd6SX3o="
+            }
+          },
+          "ApiGatewayRestApi": {
+            "Type": "AWS::ApiGateway::RestApi",
+            "Properties": {
+              "Name": "dev-ai-onboarding-assistant",
+              "EndpointConfiguration": {
+                "Types": [
+                  "EDGE"
+                ]
+              },
+              "Policy": ""
+            }
+          },
+          "ApiGatewayResourceProxyVar": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "{proxy+}",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodAny": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "ANY",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": "<REDACTED>",
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "ApiLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "ApiLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodProxyVarAny": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "ANY",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceProxyVar"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": "<REDACTED>",
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "ApiLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "ApiLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayDeployment1770231628585": {
+            "Type": "AWS::ApiGateway::Deployment",
+            "Properties": {
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "StageName": "dev"
+            },
+            "DependsOn": [
+              "ApiGatewayMethodAny",
+              "ApiGatewayMethodProxyVarAny"
+            ]
+          },
+          "ApiLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ApiLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "WorkerEventSourceMappingSQSIngestionQueue": {
+            "Type": "AWS::Lambda::EventSourceMapping",
+            "DependsOn": [
+              "IamRoleLambdaExecution"
+            ],
+            "Properties": {
+              "BatchSize": 1,
+              "EventSourceArn": {
+                "Fn::GetAtt": [
+                  "IngestionQueue",
+                  "Arn"
+                ]
+              },
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "WorkerLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Enabled": true
+            }
+          },
+          "IngestionQueue": {
+            "Type": "AWS::SQS::Queue",
+            "Properties": {
+              "QueueName": "repo-ingestion-queue",
+              "VisibilityTimeout": 300
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": "serverless-framework-deployments-ap-south-1-ca1d99ac-d8e6",
+            "Export": {
+              "Name": "sls-ai-onboarding-assistant-dev-ServerlessDeploymentBucketName"
+            }
+          },
+          "ApiLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ApiLambdaVersionDPIr9TLmf9XziGHIZ1hK2MdmgPV7wh3cHhejCe0CU"
+            },
+            "Export": {
+              "Name": "sls-ai-onboarding-assistant-dev-ApiLambdaFunctionQualifiedArn"
+            }
+          },
+          "WorkerLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "WorkerLambdaVersionubJD4oGKTt3r5916hCxenmMqfclPgsg0Wlk8ZohZZ50"
+            },
+            "Export": {
+              "Name": "sls-ai-onboarding-assistant-dev-WorkerLambdaFunctionQualifiedArn"
+            }
+          },
+          "ServiceEndpoint": {
+            "Description": "URL of the service endpoint",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  ".execute-api.",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ".",
+                  {
+                    "Ref": "AWS::URLSuffix"
+                  },
+                  "/dev"
+                ]
+              ]
+            },
+            "Export": {
+              "Name": "sls-ai-onboarding-assistant-dev-ServiceEndpoint"
+            }
+          }
+        }
+      },
+      "vpc": {}
+    },
+    "dashboard": {
+      "isEnabledForService": false,
+      "requiredAuthentication": false,
+      "orgFeaturesInUse": null,
+      "orgObservabilityIntegrations": null,
+      "serviceAppId": null,
+      "serviceProvider": null,
+      "instanceParameters": null
+    },
+    "serviceRawFile": "service: ai-onboarding-assistant\r\n\r\nuseDotenv: true\r\n\r\nprovider:\r\n  name: aws\r\n  runtime: nodejs20.x\r\n  region: ap-south-1 # Mumbai Region\r\n  memorySize: 512 # Free tier friendly (512MB)\r\n  timeout: 29 # API Gateway limit\r\n  environment:\r\n    SUPABASE_URL: ${env:SUPABASE_URL}\r\n    SUPABASE_KEY: ${env:SUPABASE_KEY}\r\n    GEMINI_API_KEY: ${env:GEMINI_API_KEY}\r\n    # Fix 1: Ensure this points to \"IngestionQueue\"\r\n    SQS_QUEUE_URL: { Ref: IngestionQueue }\r\n\r\n  iam:\r\n    role:\r\n      statements:\r\n        - Effect: 'Allow'\r\n          Action:\r\n            - 'sqs:SendMessage'\r\n          Resource:\r\n            # Fix 2: Changed 'RepoIngestionQueue' to 'IngestionQueue' to match Resources below\r\n            - { 'Fn::GetAtt': ['IngestionQueue', 'Arn'] }\r\n\r\nplugins:\r\n  - serverless-offline\r\n\r\npackage:\r\n  individually: true\r\n  exclude:\r\n    - ./**\r\n  include:\r\n    - node_modules/**\r\n    - package.json\r\n\r\nfunctions:\r\n  # 1. The HTTP API (Express/NestJS)\r\n  api:\r\n    handler: dist/apps/api/main.handler\r\n    package:\r\n      include:\r\n        - dist/apps/api/**\r\n    events:\r\n      - http:\r\n          path: /\r\n          method: ANY\r\n      - http:\r\n          path: /{proxy+}\r\n          method: ANY\r\n\r\n  # 2. The Background Worker (SQS Processor)\r\n  worker:\r\n    handler: dist/apps/worker/main.handler\r\n    timeout: 300 # 5 Minutes\r\n    package:\r\n      include:\r\n        - dist/apps/worker/**\r\n    events:\r\n      - sqs:\r\n          arn:\r\n            Fn::GetAtt: [IngestionQueue, Arn]\r\n          batchSize: 1\r\n\r\nresources:\r\n  Resources:\r\n    # 3. The Queue Definition (This name \"IngestionQueue\" is the source of truth)\r\n    IngestionQueue:\r\n      Type: AWS::SQS::Queue\r\n      Properties:\r\n        QueueName: repo-ingestion-queue\r\n        VisibilityTimeout: 300 # Must match worker timeout\r\n",
+    "command": [
+      "deploy"
+    ],
+    "options": {},
+    "orgId": "23cc9f26-4308-4099-b6ef-10eef8f8953b",
+    "orgName": "aqueef",
+    "userId": "Pkdvm9Wz1GGXvtNv9T",
+    "userName": "aqueef",
+    "serviceProviderAwsAccountId": "796973485602",
+    "serviceProviderAwsCfStackName": "ai-onboarding-assistant-dev",
+    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:ap-south-1:796973485602:stack/ai-onboarding-assistant-dev/3d58ae00-01e0-11f1-9a56-0a1415af1999",
+    "serviceProviderAwsCfStackCreated": "2026-02-04T15:43:24.536Z",
+    "serviceProviderAwsCfStackUpdated": "2026-02-04T18:49:11.396Z",
+    "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
+    "serviceProviderAwsCfStackOutputs": [
+      {
+        "OutputKey": "WorkerLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:ap-south-1:796973485602:function:ai-onboarding-assistant-dev-worker:4",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-ai-onboarding-assistant-dev-WorkerLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "ApiLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:ap-south-1:796973485602:function:ai-onboarding-assistant-dev-api:10",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-ai-onboarding-assistant-dev-ApiLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "ServiceEndpoint",
+        "OutputValue": "https://y0zqwav4bc.execute-api.ap-south-1.amazonaws.com/dev",
+        "Description": "URL of the service endpoint",
+        "ExportName": "sls-ai-onboarding-assistant-dev-ServiceEndpoint"
+      },
+      {
+        "OutputKey": "ServerlessDeploymentBucketName",
+        "OutputValue": "serverless-framework-deployments-ap-south-1-ca1d99ac-d8e6",
+        "ExportName": "sls-ai-onboarding-assistant-dev-ServerlessDeploymentBucketName"
+      }
+    ],
+    "compiledCloudFormationTemplate": {
+      "AWSTemplateFormatVersion": "2010-09-09",
+      "Description": "The AWS CloudFormation template for this Serverless application",
+      "Resources": {
+        "ApiLogGroup": {
+          "Type": "AWS::Logs::LogGroup",
+          "Properties": {
+            "LogGroupName": "/aws/lambda/ai-onboarding-assistant-dev-api"
+          }
+        },
+        "WorkerLogGroup": {
+          "Type": "AWS::Logs::LogGroup",
+          "Properties": {
+            "LogGroupName": "/aws/lambda/ai-onboarding-assistant-dev-worker"
+          }
+        },
+        "IamRoleLambdaExecution": {
+          "Type": "AWS::IAM::Role",
+          "Properties": {
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": [
+                      "lambda.amazonaws.com"
+                    ]
+                  },
+                  "Action": [
+                    "sts:AssumeRole"
+                  ]
+                }
+              ]
+            },
+            "Policies": [
+              {
+                "PolicyName": {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      "ai-onboarding-assistant",
+                      "dev",
+                      "lambda"
+                    ]
+                  ]
+                },
+                "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "logs:CreateLogStream",
+                        "logs:CreateLogGroup",
+                        "logs:TagResource"
+                      ],
+                      "Resource": [
+                        {
+                          "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ai-onboarding-assistant-dev*:*"
+                        }
+                      ]
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "logs:PutLogEvents"
+                      ],
+                      "Resource": [
+                        {
+                          "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ai-onboarding-assistant-dev*:*:*"
+                        }
+                      ]
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "sqs:SendMessage"
+                      ],
+                      "Resource": [
+                        {
+                          "Fn::GetAtt": [
+                            "IngestionQueue",
+                            "Arn"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "sqs:ReceiveMessage",
+                        "sqs:DeleteMessage",
+                        "sqs:GetQueueAttributes"
+                      ],
+                      "Resource": [
+                        {
+                          "Fn::GetAtt": [
+                            "IngestionQueue",
+                            "Arn"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "Path": "/",
+            "RoleName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "ai-onboarding-assistant",
+                  "dev",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  "lambdaRole"
+                ]
+              ]
+            }
+          }
+        },
+        "ApiLambdaFunction": {
+          "Type": "AWS::Lambda::Function",
+          "Properties": {
+            "Code": {
+              "S3Bucket": "serverless-framework-deployments-ap-south-1-ca1d99ac-d8e6",
+              "S3Key": "serverless/ai-onboarding-assistant/dev/1770231656471-2026-02-04T19:00:56.471Z/api.zip"
+            },
+            "Handler": "dist/apps/api/main.handler",
+            "Runtime": "nodejs20.x",
+            "FunctionName": "ai-onboarding-assistant-dev-api",
+            "MemorySize": 512,
+            "Timeout": 29,
+            "Environment": {
+              "Variables": {
+                "SUPABASE_URL": "https://zclppbljpcdkeazyhnyw.supabase.co",
+                "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjbHBwYmxqcGNka2Vhenlobnl3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDEzNDE2NCwiZXhwIjoyMDg1NzEwMTY0fQ.-P-xnvNnIg9bBBOQR0LyWvLy2mOAJpPEDszJ3L6AUeU",
+                "GEMINI_API_KEY": "<REDACTED>",
+                "SQS_QUEUE_URL": {
+                  "Ref": "IngestionQueue"
+                }
+              }
+            },
+            "Role": {
+              "Fn::GetAtt": [
+                "IamRoleLambdaExecution",
+                "Arn"
+              ]
+            }
+          },
+          "DependsOn": [
+            "ApiLogGroup"
+          ]
+        },
+        "WorkerLambdaFunction": {
+          "Type": "AWS::Lambda::Function",
+          "Properties": {
+            "Code": {
+              "S3Bucket": "serverless-framework-deployments-ap-south-1-ca1d99ac-d8e6",
+              "S3Key": "serverless/ai-onboarding-assistant/dev/1770231656471-2026-02-04T19:00:56.471Z/worker.zip"
+            },
+            "Handler": "dist/apps/worker/main.handler",
+            "Runtime": "nodejs20.x",
+            "FunctionName": "ai-onboarding-assistant-dev-worker",
+            "MemorySize": 512,
+            "Timeout": 300,
+            "Environment": {
+              "Variables": {
+                "SUPABASE_URL": "https://zclppbljpcdkeazyhnyw.supabase.co",
+                "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjbHBwYmxqcGNka2Vhenlobnl3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDEzNDE2NCwiZXhwIjoyMDg1NzEwMTY0fQ.-P-xnvNnIg9bBBOQR0LyWvLy2mOAJpPEDszJ3L6AUeU",
+                "GEMINI_API_KEY": "<REDACTED>",
+                "SQS_QUEUE_URL": {
+                  "Ref": "IngestionQueue"
+                }
+              }
+            },
+            "Role": {
+              "Fn::GetAtt": [
+                "IamRoleLambdaExecution",
+                "Arn"
+              ]
+            }
+          },
+          "DependsOn": [
+            "WorkerLogGroup"
+          ]
+        },
+        "ApiLambdaVersionDPIr9TLmf9XziGHIZ1hK2MdmgPV7wh3cHhejCe0CU": {
+          "Type": "AWS::Lambda::Version",
+          "DeletionPolicy": "Retain",
+          "Properties": {
+            "FunctionName": {
+              "Ref": "ApiLambdaFunction"
+            },
+            "CodeSha256": "/qgvdd6/IjpaLqqLcMDTIUPbthPD7xFUb6XBBqltkVA="
+          }
+        },
+        "WorkerLambdaVersionubJD4oGKTt3r5916hCxenmMqfclPgsg0Wlk8ZohZZ50": {
+          "Type": "AWS::Lambda::Version",
+          "DeletionPolicy": "Retain",
+          "Properties": {
+            "FunctionName": {
+              "Ref": "WorkerLambdaFunction"
+            },
+            "CodeSha256": "FWa8ZR3TEyhxmIcMYX+oTuOCgceCep7yQS0nNd6SX3o="
+          }
+        },
+        "ApiGatewayRestApi": {
+          "Type": "AWS::ApiGateway::RestApi",
+          "Properties": {
+            "Name": "dev-ai-onboarding-assistant",
+            "EndpointConfiguration": {
+              "Types": [
+                "EDGE"
+              ]
+            },
+            "Policy": ""
+          }
+        },
+        "ApiGatewayResourceProxyVar": {
+          "Type": "AWS::ApiGateway::Resource",
+          "Properties": {
+            "ParentId": {
+              "Fn::GetAtt": [
+                "ApiGatewayRestApi",
+                "RootResourceId"
+              ]
+            },
+            "PathPart": "{proxy+}",
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            }
+          }
+        },
+        "ApiGatewayMethodAny": {
+          "Type": "AWS::ApiGateway::Method",
+          "Properties": {
+            "HttpMethod": "ANY",
+            "RequestParameters": {},
+            "ResourceId": {
+              "Fn::GetAtt": [
+                "ApiGatewayRestApi",
+                "RootResourceId"
+              ]
+            },
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "ApiKeyRequired": "<REDACTED>",
+            "AuthorizationType": "NONE",
+            "Integration": {
+              "IntegrationHttpMethod": "POST",
+              "Type": "AWS_PROXY",
+              "Uri": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":apigateway:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":lambda:path/2015-03-31/functions/",
+                    {
+                      "Fn::GetAtt": [
+                        "ApiLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    "/invocations"
+                  ]
+                ]
+              }
+            },
+            "MethodResponses": []
+          },
+          "DependsOn": [
+            "ApiLambdaPermissionApiGateway"
+          ]
+        },
+        "ApiGatewayMethodProxyVarAny": {
+          "Type": "AWS::ApiGateway::Method",
+          "Properties": {
+            "HttpMethod": "ANY",
+            "RequestParameters": {},
+            "ResourceId": {
+              "Ref": "ApiGatewayResourceProxyVar"
+            },
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "ApiKeyRequired": "<REDACTED>",
+            "AuthorizationType": "NONE",
+            "Integration": {
+              "IntegrationHttpMethod": "POST",
+              "Type": "AWS_PROXY",
+              "Uri": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":apigateway:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":lambda:path/2015-03-31/functions/",
+                    {
+                      "Fn::GetAtt": [
+                        "ApiLambdaFunction",
+                        "Arn"
+                      ]
+                    },
+                    "/invocations"
+                  ]
+                ]
+              }
+            },
+            "MethodResponses": []
+          },
+          "DependsOn": [
+            "ApiLambdaPermissionApiGateway"
+          ]
+        },
+        "ApiGatewayDeployment1770231628585": {
+          "Type": "AWS::ApiGateway::Deployment",
+          "Properties": {
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "StageName": "dev"
+          },
+          "DependsOn": [
+            "ApiGatewayMethodAny",
+            "ApiGatewayMethodProxyVarAny"
+          ]
+        },
+        "ApiLambdaPermissionApiGateway": {
+          "Type": "AWS::Lambda::Permission",
+          "Properties": {
+            "FunctionName": {
+              "Fn::GetAtt": [
+                "ApiLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Action": "lambda:InvokeFunction",
+            "Principal": "apigateway.amazonaws.com",
+            "SourceArn": {
+              "Fn::Join": [
+                "",
+                [
+                  "arn:",
+                  {
+                    "Ref": "AWS::Partition"
+                  },
+                  ":execute-api:",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ":",
+                  {
+                    "Ref": "AWS::AccountId"
+                  },
+                  ":",
+                  {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  "/*/*"
+                ]
+              ]
+            }
+          }
+        },
+        "WorkerEventSourceMappingSQSIngestionQueue": {
+          "Type": "AWS::Lambda::EventSourceMapping",
+          "DependsOn": [
+            "IamRoleLambdaExecution"
+          ],
+          "Properties": {
+            "BatchSize": 1,
+            "EventSourceArn": {
+              "Fn::GetAtt": [
+                "IngestionQueue",
+                "Arn"
+              ]
+            },
+            "FunctionName": {
+              "Fn::GetAtt": [
+                "WorkerLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Enabled": true
+          }
+        },
+        "IngestionQueue": {
+          "Type": "AWS::SQS::Queue",
+          "Properties": {
+            "QueueName": "repo-ingestion-queue",
+            "VisibilityTimeout": 300
+          }
+        }
+      },
+      "Outputs": {
+        "ServerlessDeploymentBucketName": {
+          "Value": "serverless-framework-deployments-ap-south-1-ca1d99ac-d8e6",
+          "Export": {
+            "Name": "sls-ai-onboarding-assistant-dev-ServerlessDeploymentBucketName"
+          }
+        },
+        "ApiLambdaFunctionQualifiedArn": {
+          "Description": "Current Lambda function version",
+          "Value": {
+            "Ref": "ApiLambdaVersionDPIr9TLmf9XziGHIZ1hK2MdmgPV7wh3cHhejCe0CU"
+          },
+          "Export": {
+            "Name": "sls-ai-onboarding-assistant-dev-ApiLambdaFunctionQualifiedArn"
+          }
+        },
+        "WorkerLambdaFunctionQualifiedArn": {
+          "Description": "Current Lambda function version",
+          "Value": {
+            "Ref": "WorkerLambdaVersionubJD4oGKTt3r5916hCxenmMqfclPgsg0Wlk8ZohZZ50"
+          },
+          "Export": {
+            "Name": "sls-ai-onboarding-assistant-dev-WorkerLambdaFunctionQualifiedArn"
+          }
+        },
+        "ServiceEndpoint": {
+          "Description": "URL of the service endpoint",
+          "Value": {
+            "Fn::Join": [
+              "",
+              [
+                "https://",
+                {
+                  "Ref": "ApiGatewayRestApi"
+                },
+                ".execute-api.",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ".",
+                {
+                  "Ref": "AWS::URLSuffix"
+                },
+                "/dev"
+              ]
+            ]
+          },
+          "Export": {
+            "Name": "sls-ai-onboarding-assistant-dev-ServiceEndpoint"
+          }
+        }
+      }
+    }
+  }
+}

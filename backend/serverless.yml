@@ -1,0 +1,74 @@
+service: ai-onboarding-assistant
+
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ap-south-1 # Mumbai Region
+  memorySize: 512 # Free tier friendly (512MB)
+  timeout: 29 # API Gateway limit
+  environment:
+    SUPABASE_URL: ${env:SUPABASE_URL}
+    SUPABASE_KEY: ${env:SUPABASE_KEY}
+    GEMINI_API_KEY: ${env:GEMINI_API_KEY}
+    # Fix 1: Ensure this points to "IngestionQueue"
+    SQS_QUEUE_URL: { Ref: IngestionQueue }
+
+  iam:
+    role:
+      statements:
+        - Effect: 'Allow'
+          Action:
+            - 'sqs:SendMessage'
+          Resource:
+            # Fix 2: Changed 'RepoIngestionQueue' to 'IngestionQueue' to match Resources below
+            - { 'Fn::GetAtt': ['IngestionQueue', 'Arn'] }
+
+plugins:
+  - serverless-offline
+
+package:
+  individually: true
+  exclude:
+    - ./**
+  include:
+    - node_modules/**
+    - package.json
+
+functions:
+  # 1. The HTTP API (Express/NestJS)
+  api:
+    handler: dist/apps/api/main.handler
+    package:
+      include:
+        - dist/apps/api/**
+    events:
+      - http:
+          path: /
+          method: ANY
+      - http:
+          path: /{proxy+}
+          method: ANY
+
+  # 2. The Background Worker (SQS Processor)
+  worker:
+    handler: dist/apps/worker/main.handler
+    timeout: 300 # 5 Minutes
+    package:
+      include:
+        - dist/apps/worker/**
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt: [IngestionQueue, Arn]
+          batchSize: 1
+
+resources:
+  Resources:
+    # 3. The Queue Definition (This name "IngestionQueue" is the source of truth)
+    IngestionQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: repo-ingestion-queue
+        VisibilityTimeout: 300 # Must match worker timeout
